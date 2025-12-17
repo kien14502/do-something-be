@@ -10,11 +10,19 @@ export class UserService extends BaseService<User> {
   constructor(private readonly userRepository: UserRepository) {
     super(userRepository);
   }
+
   async createUser(payload: CreateUserDto) {
     const isExistUser = await this.findBy({ email: payload.email });
     if (isExistUser)
       throw new ResourceAlreadyExistsException('User', 'email', payload.email);
     const user = await this.create(payload);
+    return user;
+  }
+
+  async findUserById(id: string) {
+    const user = await this.userRepository.findById(id, {
+      select: ['avatar', 'email', 'name', 'id'],
+    });
     return user;
   }
 }

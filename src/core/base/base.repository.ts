@@ -82,6 +82,7 @@ export abstract class BaseRepository<
    * Update entity by id
    */
   async updateEntity(id: string, data: DeepPartial<T>): Promise<T> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await this.update(id, data as any);
     return this.findByIdOrFail(id);
   }
