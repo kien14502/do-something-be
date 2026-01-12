@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
@@ -7,9 +8,11 @@ import {
 } from 'typeorm';
 
 export abstract class BaseEntity extends TypeOrmBaseEntity {
+  @ApiProperty({ example: 'e1743045-de8e-46eb-a81f-d48df5be39de' })
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @ApiProperty({ example: '2025-12-18T10:44:21.676Z' })
   @CreateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
@@ -17,6 +20,7 @@ export abstract class BaseEntity extends TypeOrmBaseEntity {
   })
   createdAt: Date;
 
+  @ApiProperty({ example: '2025-12-18T10:44:21.676Z' })
   @UpdateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
@@ -25,6 +29,7 @@ export abstract class BaseEntity extends TypeOrmBaseEntity {
   })
   updatedAt: Date;
 
+  @ApiProperty({ example: '2025-12-18T10:44:21.676Z' })
   @DeleteDateColumn({
     type: 'timestamp',
     nullable: true,

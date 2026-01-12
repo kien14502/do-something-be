@@ -3,11 +3,13 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
-import { UserService } from '../user/user.service';
-import { UserRepository } from '../user/user.repository';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { StringValue } from 'ms';
+import { UserModule } from '../user/user.module';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { MailersModule } from 'src/common/services/mailers/mailers.module';
+import { RedisModule } from 'src/common/services/redis/redis.module';
 
 @Module({
   imports: [
@@ -22,8 +24,11 @@ import { StringValue } from 'ms';
       }),
       inject: [ConfigService],
     }),
+    UserModule,
+    MailersModule,
+    RedisModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, UserService, UserRepository],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
 })
 export class AuthModule {}

@@ -49,12 +49,13 @@ services:
     networks:
       - app-tier
 
-  # redis:
-  #   image: redis:latest
-  #   container_name: redis_cache
-  #   restart: always
-  #   ports:
-  #     - '6379:6379'
+  redis:
+    image: redis:latest
+    container_name: redis_cache
+    restart: always
+    ports:
+      - '6379:6379'
+
 volumes:
   postgres_data:
     driver: local

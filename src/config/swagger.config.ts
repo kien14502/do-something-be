@@ -1,10 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ErrorResponseDto } from 'src/common/dto/error.response.dto';
+import { ErrorResponseDto } from 'src/common/dtos/error.response.dto';
 
 const config = new DocumentBuilder()
-  .setTitle('EZ Study API')
-  .setDescription('The EZ Study API description')
+  .setTitle('Do something')
+  .setDescription('The Do something description')
   .setVersion('1.0')
   .addTag('ez-study')
   .addBearerAuth(

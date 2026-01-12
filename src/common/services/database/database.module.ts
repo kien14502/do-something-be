@@ -16,11 +16,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           password: configService.get<string>('DB_PASSWORD', ''),
           port: configService.get<number>('DB_PORT'),
           autoLoadEntities: true,
-          // Chỉ sử dụng synchronize: true trong môi trường dev/staging
           synchronize: configService.get<string>('NODE_ENV') !== 'production',
           logging: true,
           entities: [__dirname + '/../**/*.entity{.ts,.js}'],
           migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
+          dropSchema: true,
         };
       },
       inject: [ConfigService],

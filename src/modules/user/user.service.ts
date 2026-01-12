@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { BaseService } from 'src/core/base/base.service';
 import { User } from './entities/user.entity';
-import { UserRepository } from './user.repository';
 import { CreateUserDto } from './dtos/create-user.dto';
-import { ResourceAlreadyExistsException } from 'src/core/exception/custom.exception';
+import { UserRepository } from './user.repository';
+import { hashPassword } from 'src/shared/utils/bcrypt';
 
 @Injectable()
 export class UserService extends BaseService<User> {
@@ -12,17 +12,18 @@ export class UserService extends BaseService<User> {
   }
 
   async createUser(payload: CreateUserDto) {
-    const isExistUser = await this.findBy({ email: payload.email });
-    if (isExistUser)
-      throw new ResourceAlreadyExistsException('User', 'email', payload.email);
-    const user = await this.create(payload);
-    return user;
+    const hashedPassword = await hashPassword(payload.password);
+    const user = this.userRepository.create({
+      ...payload,
+      password: hashedPassword,
+    });
+    return user.save();
   }
 
-  async findUserById(id: string) {
-    const user = await this.userRepository.findById(id, {
-      select: ['avatar', 'email', 'name', 'id'],
-    });
-    return user;
+  async findUserByEmail(email: string) {
+    return await this.userRepository.findByEmail(email);
+  }
+  async findAndUpdateByEmail(email: string, payload: Partial<User>) {
+    return await this.userRepository.findAndUpdateByEmail(email, payload);
   }
 }
