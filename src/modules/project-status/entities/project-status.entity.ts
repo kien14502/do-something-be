@@ -1,7 +1,8 @@
 import { BaseEntity } from 'src/core/base/base.entity';
+import { Issue } from 'src/modules/issue/entities/issue.entity';
 import { Project } from 'src/modules/project/entities/project.entity';
 import { TABLE_NAME } from 'src/shared/enums/database';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity(TABLE_NAME.PROJECT_STATUS)
 export class ProjectStatus extends BaseEntity {
@@ -19,4 +20,7 @@ export class ProjectStatus extends BaseEntity {
 
   @ManyToOne(() => Project, (project) => project.statuses)
   project: Project;
+
+  @OneToMany(() => Issue, (issue) => issue.status)
+  issues: Issue[];
 }

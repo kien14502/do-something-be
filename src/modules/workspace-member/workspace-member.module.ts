@@ -4,9 +4,10 @@ import { WorkspaceMemberController } from './workspace-member.controller';
 import { WorkspaceMemberRepository } from './workspace-member.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkspaceMember } from './entities/workspace-member.entity';
+import { SseModule } from 'src/common/services/sse/sse.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([WorkspaceMember])],
+  imports: [TypeOrmModule.forFeature([WorkspaceMember]), SseModule],
   controllers: [WorkspaceMemberController],
   providers: [WorkspaceMemberService, WorkspaceMemberRepository],
   exports: [WorkspaceMemberService, WorkspaceMemberRepository],

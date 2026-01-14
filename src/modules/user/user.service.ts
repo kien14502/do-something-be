@@ -4,6 +4,7 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UserRepository } from './user.repository';
 import { hashPassword } from 'src/shared/utils/bcrypt';
+import { UpdateUserDto } from './dtos/update-user.dto';
 
 @Injectable()
 export class UserService extends BaseService<User> {
@@ -23,7 +24,8 @@ export class UserService extends BaseService<User> {
   async findUserByEmail(email: string) {
     return await this.userRepository.findByEmail(email);
   }
-  async findAndUpdateByEmail(email: string, payload: Partial<User>) {
+
+  async findAndUpdateByEmail(email: string, payload: Partial<UpdateUserDto>) {
     return await this.userRepository.findAndUpdateByEmail(email, payload);
   }
 }

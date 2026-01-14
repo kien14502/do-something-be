@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BaseRepository } from 'src/core/base/base.repository';
 import { DataSource } from 'typeorm';
 import { User } from './entities/user.entity';
+import { UpdateUserDto } from './dtos/update-user.dto';
 
 @Injectable()
 export class UserRepository extends BaseRepository<User> {
@@ -13,7 +14,7 @@ export class UserRepository extends BaseRepository<User> {
     return this.findOne({ where: { email } });
   }
 
-  async findAndUpdateByEmail(email: string, payload: Partial<User>) {
+  async findAndUpdateByEmail(email: string, payload: Partial<UpdateUserDto>) {
     return this.createQueryBuilder()
       .update(User)
       .set(payload)

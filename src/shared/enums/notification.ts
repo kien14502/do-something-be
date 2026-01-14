@@ -1,9 +1,9 @@
 export enum NotificationType {
-  ISSUE_ASSIGNED = 'ISSUE_ASSIGNED',
-  WORKSPACE_INVITE = 'WORKSPACE_INVITE',
+  ISSUE_ASSIGNED = 'issue_assigned',
+  WORKSPACE_INVITE = 'workspace_invite',
 }
 
 export enum NotificationChannel {
-  SSE = 'SSE',
-  EMAIL = 'EMAIL',
+  SSE = 'sse',
+  EMAIL = 'email',
 }

@@ -6,7 +6,6 @@ const config = new DocumentBuilder()
   .setTitle('Do something')
   .setDescription('The Do something description')
   .setVersion('1.0')
-  .addTag('ez-study')
   .addBearerAuth(
     {
       type: 'http',

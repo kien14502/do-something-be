@@ -6,8 +6,10 @@ import type { CurrentUser } from 'src/shared/interfaces/user.interface';
 import { WorkspaceRoles } from 'src/common/decorators/workspace-role.decorator';
 import { WORKSPACE_ROLE } from 'src/shared/enums/workspace';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiGlobalResponses } from 'src/common/decorators/api-global-responses.decorator';
 
 @ApiTags('workspace')
+@ApiGlobalResponses()
 @Controller('workspace')
 export class WorkspaceController {
   constructor(private readonly workspaceService: WorkspaceService) {}

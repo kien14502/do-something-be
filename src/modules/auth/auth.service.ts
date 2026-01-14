@@ -4,6 +4,7 @@ import { UserService } from '../user/user.service';
 import {
   InvalidCredentialsException,
   ResourceAlreadyExistsException,
+  ResourceNotFoundException,
   ValidationException,
 } from 'src/core/exception/custom.exception';
 import { comparePassword } from 'src/shared/utils/bcrypt';
@@ -120,8 +121,13 @@ export class AuthService {
   }
 
   async getProfile(user: CurrentUser) {
-    const profile = await this.userService.findOne(user.id);
-    return profile;
+    try {
+      const profile = await this.userService.findOne(user.id);
+      return profile;
+    } catch (error) {
+      console.error(error);
+      throw new ResourceNotFoundException('User', user.id);
+    }
   }
 
   async verifyEmail(token: string) {

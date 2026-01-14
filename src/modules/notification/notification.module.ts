@@ -5,18 +5,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity';
 import { IssueNotificationHandler } from './handlers/issue.handler';
 import { WorkspaceInviteHandler } from './handlers/workspace-invite.handler';
-import { SseService } from './sse/sse.service';
-import { SseController } from './sse/sse.controller';
+import { SseModule } from 'src/common/services/sse/sse.module';
+import { NotificationRepository } from './notification.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Notification])],
-  controllers: [SseController, NotificationController],
+  imports: [TypeOrmModule.forFeature([Notification]), SseModule],
+  controllers: [NotificationController],
   providers: [
     NotificationService,
-    SseService,
     IssueNotificationHandler,
     WorkspaceInviteHandler,
+    NotificationRepository,
   ],
-  exports: [NotificationService],
+  exports: [NotificationService, NotificationRepository],
 })
 export class NotificationModule {}

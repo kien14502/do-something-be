@@ -20,6 +20,8 @@ import { IssueModule } from './modules/issue/issue.module';
 import { ProjectStatusModule } from './modules/project-status/project-status.module';
 import { SprintIssueModule } from './modules/sprint-issue/sprint-issue.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { SseModule } from './common/services/sse/sse.module';
 
 @Module({
   imports: [
@@ -33,6 +35,15 @@ import { NotificationModule } from './modules/notification/notification.module';
       useFactory: mailerConfig,
       inject: [ConfigService],
     }),
+    EventEmitterModule.forRoot({
+      wildcard: false,
+      delimiter: '.',
+      newListener: false,
+      removeListener: false,
+      maxListeners: 10,
+      verboseMemoryLeak: false,
+      ignoreErrors: false,
+    }),
     DatabaseModule,
     AuthModule,
     UserModule,
@@ -45,6 +56,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     ProjectStatusModule,
     SprintIssueModule,
     NotificationModule,
+    SseModule,
   ],
   controllers: [AppController],
   providers: [AppService],

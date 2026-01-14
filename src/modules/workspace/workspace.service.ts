@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { BaseService } from 'src/core/base/base.service';
 import { WorkspaceRepository } from './workspace.repository';
 import { Workspace } from './entities/workspace.entity';
@@ -22,30 +22,36 @@ export class WorkspaceService extends BaseService<Workspace> {
   }
 
   async createWorkspace(payload: CreateWorkspaceDto, user: CurrentUser) {
-    const { members, ...workspaceData } = payload;
-    const workspace = this.workspaceRepository.create({
-      ...workspaceData,
-      launched: true,
-    });
-    await this.unLaunchWorkspace();
-    const savedWorkspace = await workspace.save();
+    try {
+      const { members, ...workspaceData } = payload;
+      const workspace = this.workspaceRepository.create({
+        ...workspaceData,
+        ownerId: user.id,
+        launched: true,
+      });
+      await this.unLaunchWorkspace();
+      const savedWorkspace = await workspace.save();
 
-    await this.memberWorkspaceService.createOwner(user.id, savedWorkspace.id);
+      await this.memberWorkspaceService.createOwner(user.id, savedWorkspace.id);
 
-    if (members && members.length > 0) {
-      await this.memberWorkspaceService.createMultiple(
-        members,
-        savedWorkspace.id,
-      );
+      if (members && members.length > 0) {
+        await this.memberWorkspaceService.createMultiple(
+          members,
+          savedWorkspace.id,
+        );
+      }
+
+      return savedWorkspace;
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException('Create workspace failed');
     }
-
-    return savedWorkspace;
   }
 
   async getAllWorkspaces(user: CurrentUser) {
     return this.workspaceRepository
       .createQueryBuilder(TABLE_NAME.WORKSPACE)
-      .leftJoin('workspace.members', 'member')
+      .leftJoin('tb_workspace.members', 'member')
       .where('member.userId = :userId', {
         userId: user.id,
       })
@@ -53,15 +59,12 @@ export class WorkspaceService extends BaseService<Workspace> {
   }
 
   async getDetailsById(id: string, user: CurrentUser) {
-    return (
-      this.workspaceRepository
-        .createQueryBuilder(TABLE_NAME.WORKSPACE)
-        // .leftJoinAndSelect('workspace.members', 'all_members')
-        .leftJoin('workspace.members', 'member')
-        .where('workspace.id = :id', { id })
-        .andWhere('member.userId = :userId', { userId: user.id })
-        .getOne()
-    );
+    return this.workspaceRepository
+      .createQueryBuilder(TABLE_NAME.WORKSPACE)
+      .leftJoin(`${TABLE_NAME.WORKSPACE}.members`, 'member')
+      .where(`${TABLE_NAME.WORKSPACE}.id = :id`, { id })
+      .andWhere('member.userId = :userId', { userId: user.id })
+      .getOne();
   }
 
   async getMembersWorkspace(id: string, user: CurrentUser) {
@@ -87,11 +90,11 @@ export class WorkspaceService extends BaseService<Workspace> {
   async getLaunchedWorkspace(user: CurrentUser) {
     return this.workspaceRepository
       .createQueryBuilder(TABLE_NAME.WORKSPACE)
-      .leftJoin('workspace.members', 'members')
+      .leftJoin('tb_workspace.members', 'members')
       .where('members.userId = :userId', {
         userId: user.id,
       })
-      .andWhere('workspace.launched = :launched', { launched: true })
+      .andWhere('tb_workspace.launched = :launched', { launched: true })
       .getOne();
   }
 
@@ -115,10 +118,10 @@ export class WorkspaceService extends BaseService<Workspace> {
   ): Promise<Workspace> {
     const workspace = await this.workspaceRepository
       .createQueryBuilder(TABLE_NAME.WORKSPACE)
-      .leftJoin('workspace.members', 'member')
-      .where('member.userId = :userId', { userId })
-      .andWhere('member.role = :role', { role: WORKSPACE_ROLE.OWNER })
-      .andWhere('workspace.id = :workspaceId', { workspaceId })
+      .leftJoin('tb_workspace.members', 'member')
+      .where('tb_member.userId = :userId', { userId })
+      .andWhere('tb_member.role = :role', { role: WORKSPACE_ROLE.OWNER })
+      .andWhere('tb_workspace.id = :workspaceId', { workspaceId })
       .getOne();
     if (!workspace) {
       throw new ResourceNotFoundException('Workspace', workspaceId);

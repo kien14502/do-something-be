@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { NotificationChannel } from 'src/shared/enums/notification';
-import { Repository } from 'typeorm';
-import { SseService } from './sse/sse.service';
 import { Notification } from './entities/notification.entity';
 import { SendEventDto } from './dtos/send-event.dto';
+import { SseService } from 'src/common/services/sse/sse.service';
+import { CurrentUser } from 'src/shared/interfaces/user.interface';
+import { BaseService } from 'src/core/base/base.service';
+import { NotificationRepository } from './notification.repository';
+import { TABLE_NAME } from 'src/shared/enums/database';
 
 @Injectable()
-export class NotificationService {
+export class NotificationService extends BaseService<Notification> {
   constructor(
-    @InjectRepository(Notification)
-    private readonly repo: Repository<Notification>,
+    private readonly repo: NotificationRepository,
     private readonly sseService: SseService,
-  ) {}
+  ) {
+    super(repo);
+  }
 
   async send(options: SendEventDto) {
     const notification = await this.repo.save({
@@ -27,5 +30,15 @@ export class NotificationService {
         data: notification,
       });
     }
+  }
+
+  async getAllNotifications(user: CurrentUser): Promise<Notification[]> {
+    const notifications = await this.repo
+      .createQueryBuilder(TABLE_NAME.NOTIFICATION)
+      .where(`${TABLE_NAME.NOTIFICATION}.userId = :userId`, {
+        userId: user.id,
+      })
+      .getMany();
+    return notifications;
   }
 }

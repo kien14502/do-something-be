@@ -40,7 +40,7 @@ export enum WORKSPACE_ROLE {
   ADMIN = 'admin',
   SUB_ADMIN = 'sub_admin',
   MEMBER = 'member',
-  OWNER = 'OWNER',
+  OWNER = 'owner',
 }
 
 export enum WORKSPACE_STATUS_INVITE {

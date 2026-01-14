@@ -7,6 +7,7 @@ import { ProjectMember } from 'src/modules/project-member/entities/member-projec
 import { Project } from 'src/modules/project/entities/project.entity';
 import { Sprint } from 'src/modules/sprint/entities/sprint.entity';
 import { WorkspaceMember } from 'src/modules/workspace-member/entities/workspace-member.entity';
+import { Workspace } from 'src/modules/workspace/entities/workspace.entity';
 import { TABLE_NAME } from 'src/shared/enums/database';
 import { Entity, Column, Index, OneToMany } from 'typeorm';
 
@@ -57,4 +58,7 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
+
+  @OneToMany(() => Workspace, (workspace) => workspace.owner)
+  ownerWorkspaces: Workspace[];
 }

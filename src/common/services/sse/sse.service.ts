@@ -8,6 +8,8 @@ export class SseService {
   connect(userId: string): Observable<MessageEvent> {
     const subject = new Subject<MessageEvent>();
     this.clients.set(userId, subject);
+    console.log('clients', this.clients);
+
     return subject.asObservable();
   }
 

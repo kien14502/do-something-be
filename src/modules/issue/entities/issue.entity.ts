@@ -1,4 +1,5 @@
 import { BaseEntity } from 'src/core/base/base.entity';
+import { ProjectStatus } from 'src/modules/project-status/entities/project-status.entity';
 import { Project } from 'src/modules/project/entities/project.entity';
 import { SprintIssue } from 'src/modules/sprint-issue/entities/sprint-issue.entity';
 import { User } from 'src/modules/user/entities/user.entity';
@@ -95,4 +96,7 @@ export class Issue extends BaseEntity {
 
   @OneToOne(() => SprintIssue, (sprintIssue) => sprintIssue.issue)
   sprintIssue: SprintIssue;
+
+  @ManyToOne(() => ProjectStatus, (status) => status.issues)
+  status: ProjectStatus;
 }

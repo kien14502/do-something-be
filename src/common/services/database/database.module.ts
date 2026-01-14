@@ -20,7 +20,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           logging: true,
           entities: [__dirname + '/../**/*.entity{.ts,.js}'],
           migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
-          dropSchema: true,
+          // dropSchema: true,
         };
       },
       inject: [ConfigService],

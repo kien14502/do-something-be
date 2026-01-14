@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntity } from 'src/core/base/base.entity';
 import { Project } from 'src/modules/project/entities/project.entity';
+import { User } from 'src/modules/user/entities/user.entity';
 import { WorkspaceMember } from 'src/modules/workspace-member/entities/workspace-member.entity';
 import { TABLE_NAME } from 'src/shared/enums/database';
 import {
@@ -8,7 +9,7 @@ import {
   WORKSPACE_MANAGER,
   WORKSPACE_MODE,
 } from 'src/shared/enums/workspace';
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity(TABLE_NAME.WORKSPACE)
 export class Workspace extends BaseEntity {
@@ -23,6 +24,10 @@ export class Workspace extends BaseEntity {
     default: WORKSPACE_MODE.PERSONAL,
   })
   mode: WORKSPACE_MODE;
+
+  @Column({ name: 'owner_id' })
+  @ApiProperty({ name: 'owner' })
+  ownerId: string;
 
   @ApiProperty({ example: 'sales_crm' })
   @Column({ type: 'enum', enum: WORKSPACE_MANAGER, nullable: true })
@@ -45,6 +50,10 @@ export class Workspace extends BaseEntity {
 
   @OneToMany(() => WorkspaceMember, (member) => member.workspace)
   members: WorkspaceMember[];
+
+  @ManyToOne(() => User, (user) => user.ownerWorkspaces)
+  @JoinColumn({ name: 'owner_id' })
+  owner: User;
 
   @OneToMany(() => Project, (prj) => prj.workspace)
   projects: Project[];
