@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { BaseService } from 'src/core/base/base.service';
 import { WorkspaceRepository } from './workspace.repository';
 import { Workspace } from './entities/workspace.entity';
@@ -10,7 +14,11 @@ import {
   ValidationException,
 } from 'src/core/exception/custom.exception';
 import { TABLE_NAME } from 'src/shared/enums/database';
-import { WORKSPACE_ROLE } from 'src/shared/enums/workspace';
+import {
+  WORKSPACE_ROLE,
+  WORKSPACE_STATUS_INVITE,
+} from 'src/shared/enums/workspace';
+import { GetMemberWorkspaceDto } from './dtos/get-member-workspace.dto';
 
 @Injectable()
 export class WorkspaceService extends BaseService<Workspace> {
@@ -29,7 +37,7 @@ export class WorkspaceService extends BaseService<Workspace> {
         ownerId: user.id,
         launched: true,
       });
-      await this.unLaunchWorkspace();
+      await this.unLaunchWorkspace(user.id);
       const savedWorkspace = await workspace.save();
 
       await this.memberWorkspaceService.createOwner(user.id, savedWorkspace.id);
@@ -38,12 +46,13 @@ export class WorkspaceService extends BaseService<Workspace> {
         await this.memberWorkspaceService.createMultiple(
           members,
           savedWorkspace.id,
+          user,
         );
       }
 
       return savedWorkspace;
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw new BadRequestException('Create workspace failed');
     }
   }
@@ -51,7 +60,8 @@ export class WorkspaceService extends BaseService<Workspace> {
   async getAllWorkspaces(user: CurrentUser) {
     return this.workspaceRepository
       .createQueryBuilder(TABLE_NAME.WORKSPACE)
-      .leftJoin('tb_workspace.members', 'member')
+      .leftJoin(`${TABLE_NAME.WORKSPACE}.members`, 'member')
+      .leftJoinAndSelect(`${TABLE_NAME.WORKSPACE}.owner`, 'owner')
       .where('member.userId = :userId', {
         userId: user.id,
       })
@@ -59,21 +69,44 @@ export class WorkspaceService extends BaseService<Workspace> {
   }
 
   async getDetailsById(id: string, user: CurrentUser) {
-    return this.workspaceRepository
-      .createQueryBuilder(TABLE_NAME.WORKSPACE)
-      .leftJoin(`${TABLE_NAME.WORKSPACE}.members`, 'member')
-      .where(`${TABLE_NAME.WORKSPACE}.id = :id`, { id })
-      .andWhere('member.userId = :userId', { userId: user.id })
-      .getOne();
+    try {
+      const detailWorkspace = await this.workspaceRepository
+        .createQueryBuilder(TABLE_NAME.WORKSPACE)
+        .leftJoin(`${TABLE_NAME.WORKSPACE}.members`, 'member')
+        .leftJoinAndSelect(`${TABLE_NAME.WORKSPACE}.owner`, 'owner')
+        .where(`${TABLE_NAME.WORKSPACE}.id = :id`, { id })
+        .andWhere('member.userId = :userId', { userId: user.id })
+        .getOne();
+
+      if (!detailWorkspace) {
+        throw new NotFoundException('Workspace not found');
+      }
+      const total_member = await this.memberWorkspaceService.count({
+        workspaceId: detailWorkspace.id,
+        statusInvite: WORKSPACE_STATUS_INVITE.ACCEPTED,
+      });
+
+      return {
+        ...detailWorkspace,
+        total_member,
+      };
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException('Get detail workspace failed');
+    }
   }
 
-  async getMembersWorkspace(id: string, user: CurrentUser) {
+  async getMembersWorkspace(
+    id: string,
+    params: GetMemberWorkspaceDto,
+    user: CurrentUser,
+  ) {
     const findWorkspace = await this.getDetailsById(id, user);
     if (!findWorkspace) {
       throw new ValidationException('Workspace not found or access denied');
     }
     const members = await this.memberWorkspaceService.getAllMemberWorkspaceById(
-      findWorkspace.id,
+      { id, ...params },
     );
     return members;
   }
@@ -83,25 +116,45 @@ export class WorkspaceService extends BaseService<Workspace> {
     if (!workspace) {
       throw new ValidationException('Workspace not found or access denied');
     }
-    workspace.launched = true;
-    return await workspace.save();
+    await this.unLaunchWorkspace(user.id);
+    const workspaceUpdated = await this.update(workspace.id, {
+      launched: true,
+    });
+    return workspaceUpdated;
   }
 
   async getLaunchedWorkspace(user: CurrentUser) {
-    return this.workspaceRepository
+    const workspace = await this.workspaceRepository
       .createQueryBuilder(TABLE_NAME.WORKSPACE)
-      .leftJoin('tb_workspace.members', 'members')
+      .leftJoin(`${TABLE_NAME.WORKSPACE}.members`, 'members')
+      .leftJoinAndSelect(`${TABLE_NAME.WORKSPACE}.owner`, 'owner')
       .where('members.userId = :userId', {
         userId: user.id,
       })
       .andWhere('tb_workspace.launched = :launched', { launched: true })
       .getOne();
+    if (!workspace) {
+      throw new ResourceNotFoundException('Workspace');
+    }
+
+    const total_member = await this.memberWorkspaceService.count({
+      workspaceId: workspace.id,
+      statusInvite: WORKSPACE_STATUS_INVITE.ACCEPTED,
+    });
+
+    return {
+      ...workspace,
+      total_member,
+    };
   }
 
-  async unLaunchWorkspace() {
-    const workspaceLaunched = await this.workspaceRepository.findOneBy({
-      launched: true,
-    });
+  async unLaunchWorkspace(userId: string) {
+    const workspaceLaunched = await this.workspaceRepository
+      .createQueryBuilder('workspace')
+      .leftJoinAndSelect('workspace.members', 'member')
+      .where('workspace.launched = :launched', { launched: true })
+      .andWhere('member.userId = :userId', { userId })
+      .getOne();
 
     if (!workspaceLaunched) {
       return null;
@@ -109,6 +162,7 @@ export class WorkspaceService extends BaseService<Workspace> {
 
     workspaceLaunched.launched = false;
     const saved = await workspaceLaunched.save();
+
     return saved;
   }
 
@@ -127,5 +181,22 @@ export class WorkspaceService extends BaseService<Workspace> {
       throw new ResourceNotFoundException('Workspace', workspaceId);
     }
     return workspace;
+  }
+  async inviteMemberWorkspace(
+    memberIds: string[],
+    workspaceId: string,
+    user: CurrentUser,
+  ) {
+    try {
+      const members = await this.memberWorkspaceService.createMultiple(
+        memberIds,
+        workspaceId,
+        user,
+      );
+      return members;
+    } catch (error) {
+      console.log(error);
+      throw new ResourceNotFoundException('Workspace', workspaceId);
+    }
   }
 }

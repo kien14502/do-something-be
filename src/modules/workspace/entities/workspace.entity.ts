@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
 import { BaseEntity } from 'src/core/base/base.entity';
 import { Project } from 'src/modules/project/entities/project.entity';
 import { User } from 'src/modules/user/entities/user.entity';
@@ -25,6 +26,7 @@ export class Workspace extends BaseEntity {
   })
   mode: WORKSPACE_MODE;
 
+  @Exclude()
   @Column({ name: 'owner_id' })
   @ApiProperty({ name: 'owner' })
   ownerId: string;

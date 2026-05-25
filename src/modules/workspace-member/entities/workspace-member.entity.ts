@@ -16,6 +16,9 @@ export class WorkspaceMember extends BaseEntity {
   @Column({ name: 'user_id' })
   userId: string;
 
+  @Column({ name: 'invite_by_id' })
+  inviteById: string;
+
   @Column({
     type: 'enum',
     enum: WORKSPACE_ROLE,
@@ -24,6 +27,7 @@ export class WorkspaceMember extends BaseEntity {
   role: WORKSPACE_ROLE;
 
   @Column({
+    type: 'enum',
     name: 'status_invite',
     enum: WORKSPACE_STATUS_INVITE,
     enumName: 'WORKSPACE_STATUS_INVITE',
@@ -39,4 +43,10 @@ export class WorkspaceMember extends BaseEntity {
   })
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @ManyToOne(() => User, (user) => user.memberInviteWorkspace, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'invite_by_id' })
+  inviteByUser: User;
 }

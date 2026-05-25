@@ -27,10 +27,5 @@ export class WorkspaceInviteHandler {
       payload: event,
       channels: [NotificationChannel.SSE],
     });
-
-    this.sseService.emit('', {
-      data: '123',
-      type: NotificationType.WORKSPACE_INVITE,
-    });
   }
 }

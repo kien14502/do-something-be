@@ -11,10 +11,12 @@ import { Public } from 'src/common/decorators/public.decorator';
 @Controller('sse')
 export class SseController {
   constructor(private readonly sseService: SseService) {}
-  @Sse()
+  @Sse('/notification')
   @Public()
   stream(@Req() req: Request) {
     const user = req.user as CurrentUser;
+
+    console.log('user', user);
 
     const stream$ = this.sseService.connect(user.id);
 

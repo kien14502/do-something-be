@@ -6,7 +6,7 @@ import { EmailDto } from './dtos/email.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get('/email/:email')
+  @Get('/email')
   async findByEmail(@Query() { email }: EmailDto) {
     return await this.userService.findOneBy({ email });
   }

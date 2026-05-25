@@ -277,3 +277,43 @@ CREATE INDEX idx_comments_issue_id ON comments(issue_id);
 CREATE INDEX idx_activity_log_issue_id ON activity_log(issue_id);
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX idx_sprint_issues_sprint_id ON sprint_issues(sprint_id);
+
+<!-- example transaction -->
+
+import { DataSource } from 'typeorm';
+
+@Injectable()
+export class WorkspaceService {
+constructor(private dataSource: DataSource) {}
+
+async createWorkspaceWithMember(dto: any) {
+const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // 1. Tạo Workspace
+      const workspace = await queryRunner.manager.save(Workspace, { title: dto.title });
+
+      // 2. Thêm Owner vào bảng workspace_members
+      await queryRunner.manager.save(WorkspaceMember, {
+        workspaceId: workspace.id,
+        userId: dto.userId,
+        role: 'owner',
+      });
+
+      // Nếu mọi thứ ổn, commit dữ liệu
+      await queryRunner.commitTransaction();
+      return workspace;
+    } catch (err) {
+      // Nếu có lỗi, trả mọi thứ về trạng thái cũ
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      // Luôn phải giải phóng queryRunner
+      await queryRunner.release();
+    }
+
+}
+}

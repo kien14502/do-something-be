@@ -61,4 +61,13 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Workspace, (workspace) => workspace.owner)
   ownerWorkspaces: Workspace[];
+
+  @OneToMany(() => Notification, (notification) => notification.actor)
+  actor: Notification[];
+
+  @OneToMany(
+    () => WorkspaceMember,
+    (workspaceMember) => workspaceMember.inviteByUser,
+  )
+  memberInviteWorkspace: WorkspaceMember[];
 }

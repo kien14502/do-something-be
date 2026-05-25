@@ -39,10 +39,11 @@ export class Issue extends BaseEntity {
   statusId: number;
 
   @Column({
-    name: 'priority_id',
     nullable: true,
     enum: ISSUE_PRIORITY,
     enumName: 'ISSUE_PRIORITY',
+    default: ISSUE_PRIORITY.LOW,
+    type: 'enum',
   })
   priority: ISSUE_PRIORITY;
 
